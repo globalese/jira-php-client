@@ -66,7 +66,7 @@ class JiraClient
             ];
         }
         
-        if ($versionId = $this->findVersionId($projectKey, $version)) {
+        if ($version && $versionId = $this->findVersionId($projectKey, $version)) {
             $payload['fields']['versions'][] = ['id' => $versionId];
         }
         
