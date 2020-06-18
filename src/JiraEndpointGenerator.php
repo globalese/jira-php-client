@@ -12,6 +12,6 @@ class JiraEndpointGenerator
     
     public function getProjectVersions(string $projectKey): string
     {
-        return "/rest/api/latest/project/${$projectKey}/versions";
+        return "/rest/api/latest/project/{$projectKey}/versions";
     }
 }
