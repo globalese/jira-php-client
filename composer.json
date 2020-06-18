@@ -8,7 +8,6 @@
 	],
 	"type": "library",
 	"keywords": ["jira"],
-	"minimum-stability": "dev",
 	"require": {
 		"guzzlehttp/guzzle": "^6.5",
 		"php": ">=7.1.0"

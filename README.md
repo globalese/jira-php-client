@@ -1,6 +1,12 @@
 # jira-php-client
 PHP client for Jira
 
+## Installation
+Install the package through Composer:
+```
+composer require scaramuccio/jira-php-client
+```
+
 ## Usage
 ```php
 <?php
