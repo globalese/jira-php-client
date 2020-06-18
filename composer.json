@@ -1,0 +1,21 @@
+{
+	"name": "scaramuccio/jira-php-client",
+	"description": "PHP client for Jira",
+	"authors": [
+		{
+			"name": "Greg Horváth"
+		}
+	],
+	"type": "library",
+	"keywords": ["jira"],
+	"minimum-stability": "dev",
+	"require": {
+		"guzzlehttp/guzzle": "^6.5",
+		"php": ">=7.1.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"Scaramuccio\\Jira\\": "src/"
+		}
+	}
+}
