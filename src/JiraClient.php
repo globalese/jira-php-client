@@ -49,7 +49,21 @@ class JiraClient
     ): ResponseInterface {
         $payload = [
             'fields' => [
-                'description' => $description,
+                'description' => [
+                    'type' => 'doc',
+                    'version' => 1,
+                    'content' => [
+                        [
+                            'type' => 'paragraph',
+                            'content' => [
+                                [
+                                    'text' => $description,
+                                    'type' => 'text'
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
                 'issuetype' => [
                     'name' => $type
                 ],
@@ -76,6 +90,33 @@ class JiraClient
                 RequestOptions::JSON => $payload
             ]
         );
+    }
+    
+    /**
+     * Find the Jira user ID by email address.
+     *
+     * @param string $email
+     *
+     * @return string|null
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function findUserIdByEmail(string $email): ?string
+    {
+        $Response = $this->client->get(
+            $this->endpoints->findUsers(),
+            [
+                RequestOptions::QUERY => ['query' => $email]
+            ]
+        );
+        
+        if (empty($Response->getBody())) {
+            return null;
+        }
+        
+        $users = json_decode($Response->getBody());
+        
+        return $users[0] ? $users[0]->accountId : null;
     }
     
     /**
