@@ -9,8 +9,8 @@
 	"type": "library",
 	"keywords": ["jira"],
 	"require": {
-		"guzzlehttp/guzzle": "^6.5",
-		"php": ">=7.1.0"
+		"guzzlehttp/guzzle": "^7.0",
+		"php": ">=7.3.0"
 	},
 	"autoload": {
 		"psr-4": {
