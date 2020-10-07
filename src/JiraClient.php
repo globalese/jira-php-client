@@ -32,8 +32,8 @@ class JiraClient
      * @param string $type
      * @param string $summary
      * @param string $description
-     * @param string $component
-     * @param string $version
+     * @param string|null $component
+     * @param string|null $version
      *
      * @return ResponseInterface
      *
@@ -44,8 +44,8 @@ class JiraClient
         string $type,
         string $summary,
         string $description,
-        string $component = null,
-        string $version = null
+        ?string $component = null,
+        ?string $version = null
     ): ResponseInterface {
         $payload = [
             'fields' => [
