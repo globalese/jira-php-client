@@ -32,6 +32,7 @@ class JiraClient
      * @param string $type
      * @param string $summary
      * @param string $description
+     * @param string|null $code
      * @param string|null $component
      * @param string|null $version
      *
@@ -44,6 +45,7 @@ class JiraClient
         string $type,
         string $summary,
         string $description,
+        ?string $code = null,
         ?string $component = null,
         ?string $version = null
     ): ResponseInterface {
@@ -57,8 +59,8 @@ class JiraClient
                             'type' => 'paragraph',
                             'content' => [
                                 [
-                                    'text' => $description,
-                                    'type' => 'text'
+                                    'type' => 'text',
+                                    'text' => $description
                                 ]
                             ]
                         ]
@@ -73,6 +75,18 @@ class JiraClient
                 'summary' => $summary
             ]
         ];
+    
+        if ($code) {
+            $payload['fields']['description']['content'][] = [
+                'type' => 'codeBlock',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'text' => $code
+                    ]
+                ]
+            ];
+        }
         
         if ($component) {
             $payload['fields']['components'] = [
