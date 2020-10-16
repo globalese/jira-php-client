@@ -8,33 +8,42 @@ use GuzzleHttp\RequestOptions;
 class JiraClientFactory
 {
     
-    public static function create(array $config): JiraClient
+    public static function create(array $options): JiraClient
     {
-        $requiredKeys = ['authentication_credentials', 'authentication_scheme', 'base_uri'];
-        
-        foreach ($requiredKeys as $requiredKey) {
-            if (!array_key_exists($requiredKey, $config)) {
-                throw new \Exception(
-                    "Missing required configuration option '{$requiredKey}'."
-                );
-            }
-        }
+        self::validateOptions($options);
         
         return new JiraClient(
             new JiraEndpointGenerator(),
             new Client([
-                'base_uri' => $config['base_uri'],
+                'base_uri' => $options[JiraClientOptions::BASE_URI],
                 RequestOptions::HEADERS => [
-                    'Authorization' => $config['authentication_scheme'] . " " . $config['authentication_credentials']
+                    'Authorization' => $options[JiraClientOptions::AUTHENTICATION_SCHEME] . " " . $options[JiraClientOptions::AUTHENTICATION_CREDENTIALS]
                 ],
                 RequestOptions::PROXY => [
-                    'http' => $config['http_proxy'] ?? null,
-                    'https' => $config['https_proxy'] ?? null,
-                    'no' => $config['no_proxy'] ?? null
+                    'http' => $options[JiraClientOptions::HTTP_PROXY] ?? null,
+                    'https' => $options[JiraClientOptions::HTTPS_PROXY] ?? null,
+                    'no' => $options[JiraClientOptions::NO_PROXY] ?? null
                 ],
-                RequestOptions::CONNECT_TIMEOUT => $config['connection_timeout'] ?? 5,
+                RequestOptions::CONNECT_TIMEOUT => $options[JiraClientOptions::CONNECTION_TIMEOUT] ?? 5,
                 RequestOptions::VERIFY => false
             ])
         );
+    }
+    
+    protected static function validateOptions(array $options): void
+    {
+        $requiredKeys = [
+            JiraClientOptions::AUTHENTICATION_CREDENTIALS,
+            JiraClientOptions::AUTHENTICATION_SCHEME,
+            JiraClientOptions::BASE_URI
+        ];
+    
+        foreach ($requiredKeys as $requiredKey) {
+            if (!array_key_exists($requiredKey, $options)) {
+                throw new \InvalidArgumentException(
+                    "Missing required client option '{$requiredKey}'."
+                );
+            }
+        }
     }
 }

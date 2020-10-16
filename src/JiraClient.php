@@ -3,11 +3,17 @@
 namespace Scaramuccio\Jira;
 
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\ResponseInterface;
 
 class JiraClient
 {
+    
+    /**
+     * @var array
+     */
+    protected $cachedVersions = [];
     
     /**
      * @var JiraEndpointGenerator
@@ -28,27 +34,27 @@ class JiraClient
     /**
      * Create Jira issue.
      *
-     * @param string $projectKey
-     * @param string $type
-     * @param string $summary
-     * @param string $description
-     * @param string|null $code
-     * @param string|null $component
-     * @param string|null $version
+     * @param JiraIssue $issue
      *
      * @return ResponseInterface
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
-    public function createIssue(
-        string $projectKey,
-        string $type,
-        string $summary,
-        string $description,
-        ?string $code = null,
-        ?string $component = null,
-        ?string $version = null
-    ): ResponseInterface {
+    public function createIssue(JiraIssue $issue): ResponseInterface
+    {
+        $payload = $this->createPayload($issue);
+        
+        return $this->client->request(
+            'POST',
+            $this->endpoints->createIssue(),
+            [
+                RequestOptions::JSON => $payload
+            ]
+        );
+    }
+    
+    protected function createPayload(JiraIssue $issue): array
+    {
         $payload = [
             'fields' => [
                 'description' => [
@@ -60,77 +66,52 @@ class JiraClient
                             'content' => [
                                 [
                                     'type' => 'text',
-                                    'text' => $description
+                                    'text' => $issue->description
                                 ]
                             ]
                         ]
                     ]
                 ],
                 'issuetype' => [
-                    'name' => $type
+                    'name' => $issue->type
                 ],
                 'project' => [
-                    'key' => $projectKey
+                    'key' => $issue->projectKey
                 ],
-                'summary' => $summary
+                'summary' => $issue->summary
             ]
         ];
-    
-        if ($code) {
+        
+        if ($issue->codeBlock) {
             $payload['fields']['description']['content'][] = [
                 'type' => 'codeBlock',
                 'content' => [
                     [
                         'type' => 'text',
-                        'text' => $code
+                        'text' => $issue->codeBlock
                     ]
                 ]
             ];
         }
         
-        if ($component) {
-            $payload['fields']['components'] = [
-                ['name' => $component]
-            ];
+        if ($issue->components) {
+            $payload['fields']['components'] = array_map(
+                function ($component) {
+                    return ['name' => $component];
+                },
+                $issue->components
+            );
         }
         
-        if ($version && $versionId = $this->findVersionId($projectKey, $version)) {
-            $payload['fields']['versions'][] = ['id' => $versionId];
+        if ($issue->affectsVersions) {
+            foreach ($issue->affectsVersions as $version) {
+                if ($versionId = $this->findVersionId($issue->projectKey, $version)) {
+                    $payload['fields']['versions'][] = ['id' => $versionId];
+                }
+            }
         }
         
-        return $this->client->post(
-            $this->endpoints->createIssue(),
-            [
-                RequestOptions::JSON => $payload
-            ]
-        );
-    }
-    
-    /**
-     * Find the Jira user ID by email address.
-     *
-     * @param string $email
-     *
-     * @return string|null
-     *
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
-    public function findUserIdByEmail(string $email): ?string
-    {
-        $Response = $this->client->get(
-            $this->endpoints->findUsers(),
-            [
-                RequestOptions::QUERY => ['query' => $email]
-            ]
-        );
-        
-        if (empty($Response->getBody())) {
-            return null;
-        }
-        
-        $users = json_decode($Response->getBody());
-        
-        return $users[0] ? $users[0]->accountId : null;
+        return $payload;
     }
     
     /**
@@ -142,25 +123,29 @@ class JiraClient
      *
      * @return string|null
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     protected function findVersionId(string $projectKey, string $versionName): ?string
     {
-        $Response = $this->client->get(
-            $this->endpoints->getProjectVersions($projectKey)
-        );
-        
-        if (empty($Response->getBody())) {
-            return null;
-        }
-        
-        $versions = json_decode($Response->getBody());
-        foreach ($versions as $version) {
-            if ($version->name === $versionName) {
-                return $version->id;
+        if (!isset($this->cachedVersions[$projectKey])) {
+            $response = $this->client->request(
+                'GET',
+                $this->endpoints->getProjectVersions($projectKey)
+            );
+    
+            if (empty($response->getBody())) {
+                $this->cachedVersions[$projectKey] = [];
+            }
+    
+            $versions = json_decode($response->getBody());
+    
+            foreach ($versions as $version) {
+                $this->cachedVersions[$projectKey][$version->name] = $version->id;
             }
         }
-        
-        return null;
+    
+        return isset($this->cachedVersions[$projectKey][$versionName])
+            ? $this->cachedVersions[$projectKey][$versionName]
+            : null;
     }
 }
