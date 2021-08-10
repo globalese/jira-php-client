@@ -8,7 +8,7 @@ class JiraIssue
     /** @var string|null */
     public $codeBlock;
     
-    /** @var string[]|null */
+    /** @var string[] */
     public $components;
     
     /** @var string */
@@ -23,16 +23,16 @@ class JiraIssue
     /** @var string */
     public $type;
     
-    /** @var string[]|null */
+    /** @var string[] */
     public $affectsVersions;
     
     public function __construct(array $options)
     {
         $this->validateOptions($options);
     
-        $this->affectsVersions = $options[JiraIssueOptions::AFFECTS_VERSIONS] ?? null;
+        $this->affectsVersions = $options[JiraIssueOptions::AFFECTS_VERSIONS] ?? [];
         $this->codeBlock = $options[JiraIssueOptions::CODE_BLOCK] ?? null;
-        $this->components = $options[JiraIssueOptions::COMPONENTS] ?? null;
+        $this->components = $options[JiraIssueOptions::COMPONENTS] ?? [];
         $this->description = $options[JiraIssueOptions::DESCRIPTION];
         $this->projectKey = $options[JiraIssueOptions::PROJECT_KEY];
         $this->summary = $options[JiraIssueOptions::SUMMARY];

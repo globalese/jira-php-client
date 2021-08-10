@@ -103,11 +103,9 @@ class JiraClient
             );
         }
         
-        if ($issue->affectsVersions) {
-            foreach ($issue->affectsVersions as $version) {
-                if ($versionId = $this->findVersionId($issue->projectKey, $version)) {
-                    $payload['fields']['versions'][] = ['id' => $versionId];
-                }
+        foreach ($issue->affectsVersions as $version) {
+            if ($versionId = $this->findVersionId($issue->projectKey, $version)) {
+                $payload['fields']['versions'][] = ['id' => $versionId];
             }
         }
         
