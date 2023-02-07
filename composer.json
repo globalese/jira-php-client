@@ -1,9 +1,12 @@
 {
-	"name": "scaramuccio/jira-php-client",
+	"name": "globalese/jira-php-client",
 	"description": "PHP client for Jira",
 	"authors": [
 		{
 			"name": "Greg Horváth"
+		},
+		{
+			"name": "Száraz Richárd"
 		}
 	],
 	"keywords": ["jira"],
